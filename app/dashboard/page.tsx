@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
+import { generateNumbers, checkMatch } from "@/utils/number";
+
 
 // -------------------------
 // Dashboard Wrapper (Session Check)
