@@ -3,11 +3,9 @@
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
-import { generateNumbers, checkMatch } from "@/utils/number";
-
 
 // -------------------------
-// Dashboard Wrapper (Session Check)
+// Dashboard Page Wrapper
 // -------------------------
 export default function DashboardPage() {
   const router = useRouter()
@@ -18,7 +16,7 @@ export default function DashboardPage() {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession()
       if (!data.session) {
-        router.push("/login/page") // aapke login folder ke hisaab se
+        router.push("/login/page")
       } else {
         setUserId(data.session.user.id)
         setLoading(false)
@@ -33,21 +31,19 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center p-4">
       <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-3xl text-center space-y-6">
-
         <h1 className="text-2xl font-bold mb-4">🎯 Your Dashboard</h1>
 
         <SubscriptionStatus userId={userId} />
         <ScoreEntry userId={userId} />
         <CharitySelector userId={userId} />
         <LotteryGame userId={userId} />
-
       </div>
     </div>
   )
 }
 
 // -------------------------
-// Subscription Status
+// Subscription Status Component
 // -------------------------
 function SubscriptionStatus({ userId }: { userId: string }) {
   const [plan, setPlan] = useState<string>("")
@@ -78,7 +74,7 @@ function SubscriptionStatus({ userId }: { userId: string }) {
 }
 
 // -------------------------
-// Score Entry
+// Score Entry Component
 // -------------------------
 function ScoreEntry({ userId }: { userId: string }) {
   const [scores, setScores] = useState<number[]>([])
@@ -122,17 +118,20 @@ function ScoreEntry({ userId }: { userId: string }) {
 }
 
 // -------------------------
-// Charity Selector
+// Charity Selector Component
 // -------------------------
 function CharitySelector({ userId }: { userId: string }) {
   const [charities, setCharities] = useState<any[]>([])
   const [selected, setSelected] = useState<string>("")
   const [percent, setPercent] = useState<number>(10)
 
-  const fetchCharities = async () => {
-    const { data } = await supabase.from("charities").select("*")
-    if (data) setCharities(data)
-  }
+  useEffect(() => {
+    const fetchCharities = async () => {
+      const { data } = await supabase.from("charities").select("*")
+      if (data) setCharities(data)
+    }
+    fetchCharities()
+  }, [])
 
   const saveSelection = async () => {
     if (!selected) return alert("Please select a charity")
@@ -140,8 +139,6 @@ function CharitySelector({ userId }: { userId: string }) {
     await supabase.from("users").update({ selected_charity: selected, charity_percentage: percent }).eq("id", userId)
     alert("Charity selection saved!")
   }
-
-  useEffect(() => { fetchCharities() }, [])
 
   return (
     <div className="text-left p-2 border rounded">
@@ -166,7 +163,7 @@ function CharitySelector({ userId }: { userId: string }) {
 }
 
 // -------------------------
-// Lottery Game
+// Lottery Game Component
 // -------------------------
 function generateNumbers(): number[] {
   const nums: number[] = []
@@ -188,6 +185,13 @@ function LotteryGame({ userId }: { userId: string }) {
   const [history, setHistory] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
 
+  const fetchHistory = async () => {
+    const { data } = await supabase.from("games").select("*").eq("user_id", userId).order("id", { ascending: false })
+    setHistory(data || [])
+  }
+
+  useEffect(() => { fetchHistory() }, [userId])
+
   const handlePlay = async () => {
     setLoading(true)
     const user = generateNumbers()
@@ -203,13 +207,6 @@ function LotteryGame({ userId }: { userId: string }) {
     fetchHistory()
     setLoading(false)
   }
-
-  const fetchHistory = async () => {
-    const { data } = await supabase.from("games").select("*").eq("user_id", userId).order("id", { ascending: false })
-    setHistory(data || [])
-  }
-
-  useEffect(() => { fetchHistory() }, [userId])
 
   const handleReset = () => {
     setUserNumbers([])
