@@ -1,6 +1,6 @@
 "use client"
 
-import { generateNumbers } from "@/utils/drawLogic"
+import { generateNumbers } from "@/utils/number"
 import { supabase } from "@/lib/supabase"
 
 export default function AdminPage() {   // <-- important: default export function with proper name
